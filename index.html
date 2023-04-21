@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="./index.css">
+  <title>Document</title>
+</head>
+<body>
+<div class="container">
+  <div class="pic-container" id="pic-container"></div>
+  <div class="pic-container" id="canvas-container"></div>
+</div>
+
+<script type="application/javascript">
+  const width = 800;
+  const height = 600;
+
+  // const id = 124;
+  const id = 250;
+
+  const image = new Image(width, height);
+  // image.src = `https://picsum.photos/id/${id}/${width}/${height}`;
+  image.src = 'img_1.png';
+  image.width = width;
+  image.height = height;
+
+  const picContainer = document.querySelector('#pic-container');
+  picContainer.style.height = height + 'px';
+  picContainer.style.width = width + 'px';
+  const canvasContainer = document.querySelector('#canvas-container');
+  canvasContainer.style.height = height + 'px';
+  canvasContainer.style.width = width + 'px';
+
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = width;
+  canvas.height = height;
+
+  canvasContainer.appendChild(canvas);
+  picContainer.appendChild(image);
+
+  const testMatrix1 = [
+    [0.0947416, 0.118318, 0.09447416],
+    [0.118318, 0.147761, 0.118318],
+    [0.0947416, 0.118318, 0.09447416],
+  ];
+
+  const testMatrix2 = [
+    [0.075, 0.124, 0.075],
+    [0.124, 0.204, 0.124],
+    [0.075, 0.124, 0.075],
+  ];
+
+  const testMatrix3 = [
+    [0.0625, 0.125, 0.0625],
+    [0.125, 0.25, 0.125],
+    [0.0625, 0.125, 0.0625],
+  ];
+
+  const testMatrix4 = [
+    [0.25, 0, -0.25],
+    [0.5, 0, -0.5],
+    [0.25, 0, -0.25],
+  ];
+
+  const testMatrix5 = [
+    [0, 0, 0],
+    [0, 1, 0],
+    [0, 0, 0],
+  ];
+
+
+  image.onload = function () {
+    ctx.drawImage(image, 0, 0);
+    const originImageData = ctx.getImageData(0, 0, width, height);
+
+    let temp = originImageData;
+    for(let i = 0; i < 50;i++) {
+      temp = gauss(temp);
+    }
+
+    ctx.putImageData(temp, 0, 0);
+  }
+  
+  function gauss(originImageData) {
+    const newImageData = ctx.createImageData(width, height);
+    for(let i = 0; i < originImageData.data.length; i = i + 4) {
+      let rgba = [];
+      for(let j = 0; j < 4; j++) {
+        const matrix = [
+          [originImageData.data[i + j - width * 4 - 4] || 0, originImageData.data[i + j - width * 4] || 0, originImageData.data[i + j - width * 4 + 4] || 0],
+          [originImageData.data[i + j - 4] || 0, originImageData.data[i + j], originImageData.data[i + j + 4]] || 0,
+          [originImageData.data[i + j + width * 4 - 4] || 0, originImageData.data[i + j + width * 4] || 0, originImageData.data[i + j + width * 4 + 4]] || 0,
+        ];
+        rgba.push(calcMatrix(matrix, testMatrix3));
+      }
+      newImageData.data[i] = rgba[0];
+      newImageData.data[i + 1] = rgba[1];
+      newImageData.data[i + 2] = rgba[2];
+      newImageData.data[i + 3] = rgba[3];
+    }
+
+    return newImageData;
+  }
+
+  function calcMatrix(m1, m2) {
+    let res = 0;
+    const length = m1.length;
+    for(let i = 0; i < length; i++) {
+      for(let j = 0; j < length; j++) {
+        res = res + m1[i][j] * m2[i][j];
+      }
+    }
+    return Math.round(res);
+  }
+
+</script>
+</body>
+</html>
